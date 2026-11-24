@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaxBuddy - Tax Due Dates and Annual Compliances</title>
+<style>
+  :root { --brand:#1565c0; --brand-dark:#0d47a1; --accent:#1976d2; --bg:#f5f7fb; --card:#ffffff; --text:#1c2430;
+          --muted:#5f6b7a; --red:#c62828; --amber:#ef8f00; --green:#2e7d32; --grey:#78909c; --line:#e1e6ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); }
+  a { color:var(--brand); text-decoration:none; }
+  .topbar { background:var(--brand-dark); color:#dbe7ff; font-size:13px; padding:6px 20px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .masthead { background:#fff; border-bottom:1px solid var(--line); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .logo { font-size:26px; font-weight:800; color:var(--brand-dark); letter-spacing:-0.5px; }
+  .logo span { color:var(--accent); }
+  .masthead .search { flex:1; max-width:520px; display:flex; }
+  .masthead input { flex:1; padding:10px 14px; border:1px solid var(--line); border-radius:6px 0 0 6px; font-size:14px; }
+  .masthead button { background:var(--brand); color:#fff; border:none; padding:0 18px; border-radius:0 6px 6px 0; cursor:pointer; font-size:14px; }
+  nav.mainnav { background:var(--brand); display:flex; flex-wrap:wrap; padding:0 12px; position:sticky; top:0; z-index:10; }
+  nav.mainnav button { background:none; border:none; color:#fff; padding:13px 16px; font-size:14px; cursor:pointer; border-bottom:3px solid transparent; }
+  nav.mainnav button:hover { background:rgba(255,255,255,.1); }
+  nav.mainnav button.active { border-bottom-color:#fff; background:rgba(255,255,255,.12); }
+  main { max-width:1180px; margin:0 auto; padding:22px 16px 60px; }
+  section { display:none; } section.active { display:block; }
+  .hero { background:linear-gradient(120deg,var(--brand-dark),var(--accent)); color:#fff; border-radius:12px; padding:32px 26px; margin-bottom:20px; }
+  .hero h2 { margin:0 0 8px; font-size:26px; }
+  .hero p { margin:0 0 14px; opacity:.92; }
+  .hero .row { display:flex; gap:10px; flex-wrap:wrap; }
+  .hero .pill { background:rgba(255,255,255,.18); color:#fff; border:1px solid rgba(255,255,255,.4); border-radius:20px; padding:7px 14px; cursor:pointer; font-size:13px; }
+  .tools { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:20px; }
+  .tool { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; cursor:pointer; border-top:4px solid var(--accent); }
+  .tool:hover { box-shadow:0 4px 14px rgba(21,101,192,.15); }
+  .tool h4 { margin:0 0 6px; color:var(--brand-dark); }
+  .tool p { margin:0; color:var(--muted); font-size:13px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+  .stat { font-size:26px; font-weight:700; color:var(--brand); }
+  .muted { color:var(--muted); font-size:13px; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  input, select { padding:9px 12px; border:1px solid var(--line); border-radius:6px; font-size:14px; background:#fff; }
+  input[type=search] { flex:1; min-width:200px; }
+  table { width:100%; border-collapse:collapse; background:#fff; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; }
+  th { background:#eef3fb; font-weight:600; }
+  .tag { display:inline-block; padding:3px 9px; border-radius:12px; font-size:12px; font-weight:600; color:#fff; white-space:nowrap; }
+  .t-red { background:var(--red); } .t-amber { background:var(--amber); } .t-green { background:var(--green); } .t-grey { background:var(--grey); }
+  .cat { font-size:12px; color:var(--brand); background:#e3edfb; padding:2px 8px; border-radius:6px; }
+  button.small { border:none; background:var(--brand); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  .result { font-size:20px; font-weight:700; color:var(--brand); margin-top:12px; }
+  .disclaimer { font-size:12px; color:var(--muted); margin-top:16px; line-height:1.5; }
+  h3.sec { margin:0 0 10px; color:var(--brand-dark); }
+  ul.links li { margin:8px 0; }
+  .update { border-bottom:1px solid var(--line); padding:10px 0; }
+  .update:last-child { border-bottom:none; }
+  footer { background:var(--brand-dark); color:#dbe7ff; padding:26px 20px; font-size:13px; }
+  footer .cols { max-width:1180px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; }
+  footer a { color:#fff; }
+  footer h5 { color:#fff; margin:0 0 8px; }
+
+  .hero { display:grid; grid-template-columns:1.6fr 1fr; gap:24px; align-items:center; }
+  @media (max-width:800px){ .hero { grid-template-columns:1fr; } }
+  .kicker { display:inline-block; background:rgba(255,255,255,.18); padding:4px 10px; border-radius:12px; font-size:12px; margin-bottom:10px; }
+  .hero-search { display:flex; margin-top:12px; max-width:560px; }
+  .hero-search input { flex:1; padding:11px 14px; border:none; border-radius:6px 0 0 6px; font-size:14px; }
+  .hero-search button { border:none; background:#0d47a1; color:#fff; padding:0 18px; border-radius:0 6px 6px 0; cursor:pointer; }
+  .hero-stats { display:grid; grid-template-columns:1fr; gap:10px; }
+  .hero-stats > div { background:rgba(255,255,255,.14); border-radius:10px; padding:12px 16px; font-size:24px; font-weight:700; }
+  .hero-stats small { display:block; font-size:12px; font-weight:400; opacity:.9; }
+  .block-head { display:flex; justify-content:space-between; align-items:center; margin:22px 0 10px; }
+  .block-head h3 { margin:0; color:var(--brand-dark); font-size:19px; }
+  .block-head a { font-size:14px; }
+  .amend-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-bottom:6px; }
+  .amend { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px; border-left:4px solid var(--accent); }
+  .amend h4 { margin:8px 0 6px; font-size:15px; color:var(--text); }
+  .amend p { margin:0 0 8px; font-size:13px; color:var(--muted); line-height:1.5; }
+  .amend-top { display:flex; justify-content:space-between; align-items:center; font-size:12px; }
+  .status { padding:3px 9px; border-radius:10px; font-weight:600; color:#fff; font-size:12px; }
+  .s-live { background:var(--green); } .s-ord { background:var(--amber); } .s-bill { background:#8e24aa; } .s-ok { background:var(--grey); }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; }
+  @media (max-width:800px){ .two-col { grid-template-columns:1fr; } }
+  table.slab td, table.slab th { font-size:13px; padding:7px 8px; }
+  #updatesList .amend { margin-bottom:12px; }
+
+  .slab-card { margin-top:20px; }
+  .slab-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; }
+  .slab-grid div { display:flex; justify-content:space-between; padding:8px 10px; background:#f5f8fc; border-radius:6px; font-size:13px; }
+  .slab-grid b { color:var(--brand); }
+  .filter-row { display:flex; gap:8px; margin:6px 0 14px; flex-wrap:wrap; }
+  .fbtn { border:1px solid var(--line); background:#fff; padding:7px 14px; border-radius:18px; cursor:pointer; font-size:13px; }
+  .fbtn.active { background:var(--brand); color:#fff; border-color:var(--brand); }
+  .s-circ { background:#1565c0; }
+  a.tool { text-decoration:none; color:inherit; display:block; }
+  @media (max-width:640px) { th:nth-child(3), td:nth-child(3) { display:none; } }
+</style>
+</head>
+<body>
+
+<div class="topbar"><span>Tax and company law updates · Calculators · Filing tools</span></div>
+
+<div class="masthead">
+  <div class="logo">Tax<span>Buddy</span></div>
+  <form class="search" onsubmit="return globalSearch(event)">
+    <input type="search" id="globalQ" placeholder="Search a due date, form or tax topic (e.g. GSTR-3B, TDS, ITR)">
+    <button type="submit">Search</button>
+  </form>
+</div>
+
+<nav class="mainnav">
+  <button class="active" data-tab="home">Home</button>
+  <button data-tab="calendar">Due dates</button>
+  <button data-tab="recurring">Monthly filings</button>
+  <button data-tab="annual">Annual compliances</button>
+  <button data-tab="updates">Updates</button>
+  <button data-tab="calc">Income tax calculator</button>
+  <button data-tab="gst">GST calculator</button>
+  <button data-tab="links">Official portals</button>
+</nav>
+
+<main>
+
+<section id="home" class="active">
+  <div class="hero">
+    
+    <h2>Tax and company law updates, calculators and filing tools</h2>
+    <p>Latest amendments under the Income-tax Act, 2025 and the Companies Act, 2013, with simple tools for tax and GST.</p>
+    <form class="hero-search" onsubmit="return globalSearch(event)">
+      <input type="search" id="heroQ" placeholder="Search a form, section or topic: MGT-7, GSTR-3B, 87A">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <div class="block-head"><h3>Latest amendments</h3><a href="#" data-go="updates">All amendments →</a></div>
+  <div class="amend-grid" id="homeAmend"></div>
+
+  <div class="block-head"><h3>Tools</h3></div>
+  <div class="tools">
+    <div class="tool" data-go="calc"><h4>Income tax calculator</h4><p>Estimate tax under the new regime.</p></div>
+    <div class="tool" data-go="gst"><h4>GST calculator</h4><p>Add or remove GST and split CGST, SGST and IGST.</p></div>
+    <div class="tool" data-go="calendar"><h4>Due date calendar</h4><p>Statutory deadlines, including the MCA extension for FY 2025-26.</p></div>
+    <div class="tool" data-go="annual"><h4>Annual checklist</h4><p>What each company, individual and employer must file.</p></div>
+    <a class="tool" href="https://boards-report-generator.haleion16.chatgpt.site/" target="_blank" rel="noopener"><h4>Board's report generator</h4><p>Prepare a board's report draft. External tool, opens in a new tab.</p></a>
+    <div class="tool" data-go="links"><h4>Official portals</h4><p>Income tax, GST, MCA, EPFO and ESIC sites.</p></div>
+  </div>
+
+  <div class="card slab-card">
+    <div class="block-head"><h3>New regime slabs (FY 2025-26 income)</h3><a href="#" data-go="calc">Calculate →</a></div>
+    <div class="slab-grid">
+      <div><span>Up to ₹4,00,000</span><b>Nil</b></div>
+      <div><span>₹4,00,001 – ₹8,00,000</span><b>5%</b></div>
+      <div><span>₹8,00,001 – ₹12,00,000</span><b>10%</b></div>
+      <div><span>₹12,00,001 – ₹16,00,000</span><b>15%</b></div>
+      <div><span>₹16,00,001 – ₹20,00,000</span><b>20%</b></div>
+      <div><span>₹20,00,001 – ₹24,00,000</span><b>25%</b></div>
+      <div><span>Above ₹24,00,000</span><b>30%</b></div>
+    </div>
+    <p class="muted" style="margin:10px 0 0">Section 87A makes tax nil up to ₹12,00,000 taxable income. Salaried persons also get a ₹75,000 standard deduction. 4% cess applies.</p>
+  </div>
+</section>
+
+<section id="calendar">
+  <div class="card">
+    <h3 class="sec">Due date calendar (FY 2025-26)</h3>
+    <div class="controls">
+      <input type="search" id="search" placeholder="Search e.g. GSTR, TDS, ITR, AOC">
+      <select id="catFilter"><option value="">All categories</option></select>
+      <select id="statusFilter">
+        <option value="">All status</option>
+        <option value="open">Not done</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Due date</th><th>Compliance</th><th>Category</th><th>Days left</th><th>Done</th><th>Reminder</th></tr></thead>
+      <tbody id="calBody"></tbody>
+    </table>
+    <p class="disclaimer">Dates are the usual statutory deadlines. Government deadlines are sometimes extended, so confirm on the official portal before filing. Your ticks are saved in this browser only.</p>
+  </div>
+</section>
+
+<section id="recurring">
+  <div class="card">
+    <h3 class="sec">Monthly and quarterly filings (next 12 months)</h3>
+    <table>
+      <thead><tr><th>Due date</th><th>Filing</th><th>Who files</th></tr></thead>
+      <tbody id="recBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="annual">
+  <div class="card">
+    <h3 class="sec">Annual compliance checklist</h3>
+    <table>
+      <thead><tr><th>Area</th><th>What to file or do</th><th>Applies to</th></tr></thead>
+      <tbody>
+        <tr><td>Income tax</td><td>Income tax return (ITR) for the previous year</td><td>Everyone with income above the exemption limit, or with foreign assets or TDS refunds</td></tr>
+        <tr><td>Income tax</td><td>Tax audit report (3CA/3CB + 3CD)</td><td>Businesses with turnover above ₹1 crore (₹10 crore if digital receipts are at least 95%) and professionals above ₹50 lakh</td></tr>
+        <tr><td>Income tax</td><td>Advance tax (4 instalments)</td><td>Tax liability above ₹10,000 after TDS</td></tr>
+        <tr><td>TDS / TCS</td><td>Quarterly TDS returns (24Q, 26Q, 27Q, 27EQ) and Form 16 / 16A</td><td>Deductors of tax</td></tr>
+        <tr><td>GST</td><td>Annual return GSTR-9, and GSTR-9C reconciliation statement</td><td>Regular GST taxpayers; GSTR-9C above ₹5 crore turnover</td></tr>
+        <tr><td>Companies (MCA)</td><td>AGM, AOC-4 (financial statements), MGT-7 / MGT-7A (annual return), ADT-1 (auditor). For FY 2025-26: AOC-4 by 31-Dec-2026 and MGT-7 / MGT-7A by 31-Jan-2027 without additional fee (MCA Circular 05/2026)</td><td>All companies (Pvt Ltd, Public Ltd, OPC)</td></tr>
+        <tr><td>Companies (MCA)</td><td>DIR-3 KYC for every director</td><td>Every director holding a DIN</td></tr>
+        <tr><td>Companies (MCA)</td><td>MSME-1 half-yearly return</td><td>Companies with dues to MSME vendors</td></tr>
+        <tr><td>Companies (Income tax)</td><td>Company ITR (ITR-6)</td><td>All companies (not charitable)</td></tr>
+        <tr><td>Payroll</td><td>Annual PF and ESI returns, Form 24Q, Form 16</td><td>Employers with PF / ESI / TDS obligations</td></tr>
+        <tr><td>State</td><td>Professional tax returns and payments</td><td>Employers and professionals in states that levy it; frequency varies by state</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="updates">
+  <div class="card">
+    <h3 class="sec">Updates</h3>
+    <p class="muted">Last checked: 24 November 2026. Items marked "Bill" or "Draft" are not law yet. Confirm the position in the Gazette or on mca.gov.in / incometaxindia.gov.in before relying on it.</p>
+    <div class="filter-row">
+      <button class="fbtn active" data-f="all">All</button>
+      <button class="fbtn" data-f="it">Income tax</button>
+      <button class="fbtn" data-f="mca">MCA / Companies Act</button>
+    </div>
+    <div id="updatesList"></div>
+  </div>
+</section>
+
+<section id="calc">
+  <div class="card">
+    <h3 class="sec">Income tax estimate (new regime, FY 2025-26)</h3>
+    <p class="muted">Rough estimate for salaried individuals under the new regime. Excludes surcharge, other deductions and specific cases.</p>
+    <label>Gross annual income (₹)</label>
+    <input type="number" id="grossIncome" value="1000000" min="0" style="width:100%">
+    <label><input type="checkbox" id="salaried" checked style="width:auto"> Salaried (₹75,000 standard deduction)</label>
+    <div class="result" id="taxResult"></div>
+    <p class="disclaimer" id="taxBreakup"></p>
+  </div>
+</section>
+
+<section id="gst">
+  <div class="card">
+    <h3 class="sec">GST calculator</h3>
+    <label>Amount (₹)</label>
+    <input type="number" id="gstAmt" value="10000" style="width:100%">
+    <label>GST rate</label>
+    <select id="gstRate" style="width:100%">
+      <option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option>
+    </select>
+    <label>Amount is</label>
+    <select id="gstMode" style="width:100%">
+      <option value="excl">Before GST (add GST)</option>
+      <option value="incl">Including GST (remove GST)</option>
+    </select>
+    <div class="result" id="gstResult"></div>
+  </div>
+</section>
+
+<section id="links">
+  <div class="card">
+    <h3 class="sec">Official portals</h3>
+    <ul class="links">
+      <li><a href="https://www.incometax.gov.in" target="_blank" rel="noopener">incometax.gov.in</a> - Income tax returns, e-filing, advance tax</li>
+      <li><a href="https://www.tdscpc.gov.in" target="_blank" rel="noopener">tdscpc.gov.in</a> - TDS / TCS returns and Form 16 / 16A</li>
+      <li><a href="https://www.gst.gov.in" target="_blank" rel="noopener">gst.gov.in</a> - GST returns and payments</li>
+      <li><a href="https://www.mca.gov.in" target="_blank" rel="noopener">mca.gov.in</a> - Company filings (AOC-4, MGT-7, DIR-3 KYC, ADT-1)</li>
+      <li><a href="https://www.epfindia.gov.in" target="_blank" rel="noopener">epfindia.gov.in</a> - Provident fund</li>
+      <li><a href="https://www.esic.gov.in" target="_blank" rel="noopener">esic.gov.in</a> - ESI contributions</li>
+    </ul>
+    <p class="disclaimer">TaxBuddy is an informational tool and does not replace advice from a Chartered Accountant, tax practitioner or company secretary.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="cols">
+    <div><h5>TaxBuddy</h5>Due dates, compliances and tax tools for individuals, businesses and companies in India.</div>
+    <div><h5>Quick links</h5><a href="#" data-go="calendar">Due dates</a><br><a href="#" data-go="annual">Annual checklist</a><br><a href="#" data-go="calc">Tax calculator</a></div>
+    <div><h5>Disclaimer</h5>Informational only. Last checked 24 November 2026. Verify deadlines and rules on the official portals before acting.</div>
+  </div>
+</footer>
+
+<script>
+
+// ---------- Data ----------
+const FIXED = [
+  { cat:"Income tax", name:"Advance tax - 1st instalment (15%)", date:"2026-06-15", who:"Taxpayers with liability above ₹10,000" },
+  { cat:"Income tax", name:"ITR - individuals not needing audit", date:"2026-07-31", who:"Individuals and HUF without audit" },
+  { cat:"Income tax", name:"Advance tax - 2nd instalment (45%)", date:"2026-09-15", who:"Taxpayers with liability above ₹10,000" },
+  { cat:"Income tax", name:"Tax audit report (3CA/3CB + 3CD)", date:"2026-09-30", who:"Businesses and professionals under audit" },
+  { cat:"Income tax", name:"ITR - audit cases", date:"2026-10-31", who:"Businesses and professionals under audit; companies" },
+  { cat:"Income tax", name:"ITR - transfer pricing cases", date:"2026-11-30", who:"Entities with international / specified domestic transactions" },
+  { cat:"Income tax", name:"Advance tax - 3rd instalment (75%)", date:"2026-12-15", who:"Taxpayers with liability above ₹10,000" },
+  { cat:"Income tax", name:"Advance tax - final instalment (100%)", date:"2027-03-15", who:"Taxpayers with liability above ₹10,000" },
+  { cat:"TDS / TCS", name:"Form 16 / 16A issue (FY 2025-26)", date:"2026-06-15", who:"Employers and deductors" },
+  { cat:"TDS / TCS", name:"Q1 TDS / TCS return (Apr-Jun)", date:"2026-07-31", who:"Deductors and collectors" },
+  { cat:"TDS / TCS", name:"Q2 TDS / TCS return (Jul-Sep)", date:"2026-10-31", who:"Deductors and collectors" },
+  { cat:"TDS / TCS", name:"Q3 TDS / TCS return (Oct-Dec)", date:"2027-01-31", who:"Deductors and collectors" },
+  { cat:"TDS / TCS", name:"Q4 TDS / TCS return (Jan-Mar)", date:"2027-05-31", who:"Deductors and collectors" },
+  { cat:"GST", name:"GSTR-9 annual return (FY 2025-26)", date:"2026-12-31", who:"Regular GST taxpayers (check exemptions)" },
+  { cat:"GST", name:"GSTR-9C reconciliation statement", date:"2026-12-31", who:"Taxpayers with turnover above ₹5 crore" },
+  { cat:"MCA / ROC", name:"DIR-3 KYC (all directors)", date:"2026-09-30", who:"Every director holding a DIN" },
+  { cat:"MCA / ROC", name:"Last date for AGM (FY 2025-26)", date:"2026-09-30", who:"All companies" },
+  { cat:"MCA / ROC", name:"ADT-1 auditor appointment", date:"2026-10-15", who:"Companies (within 15 days of AGM)" },
+  { cat:"MCA / ROC", name:"AOC-4 financial statements - statutory date", date:"2026-10-30", who:"Companies (30 days after AGM on 30-Sep). Extended without additional fee to 31-Dec-2026 under MCA Circular 05/2026" },
+  { cat:"MCA / ROC", name:"AOC-4 - extended date (no additional fee, FY 2025-26)", date:"2026-12-31", who:"MCA General Circular 05/2026 dated 24-Oct-2026" },
+  { cat:"MCA / ROC", name:"MGT-7 / MGT-7A - statutory date", date:"2026-11-29", who:"Companies (60 days after AGM on 30-Sep)" },
+  { cat:"MCA / ROC", name:"MGT-7 / MGT-7A - extended date (no additional fee, FY 2025-26)", date:"2027-01-31", who:"MCA General Circular 05/2026 dated 24-Oct-2026. Late fee of Rs 100 per day applies after this date" },
+  { cat:"MCA / ROC", name:"MSME-1 half-year return (Apr-Sep)", date:"2026-10-31", who:"Companies with dues to MSME vendors" },
+  { cat:"MCA / ROC", name:"MSME-1 half-year return (Oct-Mar)", date:"2027-04-30", who:"Companies with dues to MSME vendors" },
+];
+
+// Recurring rules: day of month, label, who
+const MONTHLY = [
+  { day:11, cat:"GST", name:"GSTR-1 (monthly filers)", who:"Monthly GST taxpayers - return for previous month" },
+  { day:20, cat:"GST", name:"GSTR-3B (monthly filers)", who:"Monthly GST taxpayers - summary return and tax payment" },
+  { day:7,  cat:"TDS / TCS", name:"TDS / TCS deposit (challan 281)", who:"Deductors - tax deducted in previous month" },
+  { day:15, cat:"Payroll", name:"PF and ESI contribution payment", who:"Employers with PF / ESI" },
+];
+
+// ---------- Helpers ----------
+const LS_KEY = "taxbuddy_done_v1";
+const done = new Set(JSON.parse(localStorage.getItem(LS_KEY) || "[]"));
+function saveDone(){ localStorage.setItem(LS_KEY, JSON.stringify([...done])); }
+const fmt = d => d.toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+const today = new Date(); today.setHours(0,0,0,0);
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const daysLeft = d => Math.round((d - today) / 86400000);
+
+function statusTag(days, isDone){
+  if (isDone) return '<span class="tag t-green">Done</span>';
+  if (days < 0) return '<span class="tag t-red">Overdue</span>';
+  if (days <= 7) return '<span class="tag t-red">' + days + ' days</span>';
+  if (days <= 30) return '<span class="tag t-amber">' + days + ' days</span>';
+  return '<span class="tag t-grey">' + days + ' days</span>';
+}
+
+function icsFor(ev){
+  const d = ev.date; const ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,"0") + String(d.getDate()).padStart(2,"0");
+  const txt = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//TaxBuddy//EN","BEGIN:VEVENT",
+    "UID:" + ymd + "-" + Math.random().toString(36).slice(2) + "@taxbuddy",
+    "DTSTART;VALUE=DATE:" + ymd, "DTEND;VALUE=DATE:" + ymd,
+    "SUMMARY:" + ev.name + " due", "DESCRIPTION:" + ev.who,
+    "BEGIN:VALARM","TRIGGER:-P3D","ACTION:DISPLAY","DESCRIPTION:Due in 3 days","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const url = URL.createObjectURL(new Blob([txt], {type:"text/calendar"}));
+  const a = document.createElement("a"); a.href = url; a.download = ev.name.replace(/[^a-z0-9]+/gi,"_") + ".ics"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---------- Build events ----------
+const EVENTS = FIXED.map((e, i) => ({ ...e, id:"f"+i, date:parse(e.date) }));
+
+// Generate monthly occurrences for the next 12 months
+for (let k = 0; k < 13; k++){
+  const base = new Date(today.getFullYear(), today.getMonth() + k, 1);
+  MONTHLY.forEach((r, i) => {
+    const d = new Date(base.getFullYear(), base.getMonth(), r.day);
+    if (d >= today && d <= new Date(today.getFullYear(), today.getMonth()+13, 0)) {
+      EVENTS.push({ cat:r.cat, name:r.name, who:r.who, date:d, id:"m"+i+"-"+d.getTime(), recurring:true });
+    }
+  });
+}
+EVENTS.sort((a,b) => a.date - b.date);
+
+// ---------- Render: calendar ----------
+const cats = [...new Set(FIXED.map(e => e.cat)), ...MONTHLY.map(r => r.cat)];
+const catSel = document.getElementById("catFilter");
+[...new Set(cats)].sort().forEach(c => catSel.insertAdjacentHTML("beforeend", `<option>${c}</option>`));
+
+function renderCal(){
+  const q = document.getElementById("search").value.toLowerCase();
+  const c = catSel.value, s = document.getElementById("statusFilter").value;
+  const rows = EVENTS.filter(e =>
+      (!c || e.cat === c) &&
+      (!q || (e.name + " " + e.cat + " " + e.who).toLowerCase().includes(q)) &&
+      (!s || (s === "done") === done.has(e.id)))
+    .map(e => `<tr>
+      <td>${fmt(e.date)}</td>
+      <td><strong>${e.name}</strong><div class="muted">${e.who}</div></td>
+      <td><span class="cat">${e.cat}</span></td>
+      <td>${statusTag(daysLeft(e.date), done.has(e.id))}</td>
+      <td><input type="checkbox" ${done.has(e.id) ? "checked" : ""} data-id="${e.id}"></td>
+      <td><button class="small" data-ics="${e.id}">Add</button></td></tr>`);
+  document.getElementById("calBody").innerHTML = rows.join("") || '<tr><td colspan="6" class="muted">No matching items.</td></tr>';
+}
+["search","catFilter","statusFilter"].forEach(id => document.getElementById(id).addEventListener("input", renderCal));
+document.getElementById("calBody").addEventListener("change", ev => {
+  if (ev.target.dataset.id){
+    ev.target.checked ? done.add(ev.target.dataset.id) : done.delete(ev.target.dataset.id);
+    saveDone(); renderCal();
+  }
+});
+document.getElementById("calBody").addEventListener("click", ev => {
+  const id = ev.target.dataset.ics;
+  if (id) icsFor(EVENTS.find(e => e.id === id));
+});
+renderCal();
+
+// ---------- Render: recurring ----------
+const recRows = EVENTS.filter(e => e.recurring).map(e =>
+  `<tr><td>${fmt(e.date)}</td><td><strong>${e.name}</strong></td><td class="muted">${e.who}</td></tr>`);
+document.getElementById("recBody").innerHTML = recRows.join("");
+
+// ---------- Income tax estimate (new regime, FY 2025-26) ----------
+function newRegimeTax(income){
+  const slabs = [[400000,0],[800000,0.05],[1200000,0.10],[1600000,0.15],[2000000,0.20],[2400000,0.25],[Infinity,0.30]];
+  let tax = 0, prev = 0;
+  for (const [limit, rate] of slabs){
+    if (income > prev){ tax += (Math.min(income, limit) - prev) * rate; }
+    prev = limit;
+  }
+  return tax;
+}
+function calcTax(){
+  const gross = Math.max(0, Number(document.getElementById("grossIncome").value) || 0);
+  const salaried = document.getElementById("salaried").checked;
+  const taxable = Math.max(0, gross - (salaried ? 75000 : 0));
+  let tax = newRegimeTax(taxable);
+  let rebate = 0;
+  if (taxable <= 1200000){ rebate = tax; tax = 0; }                   // Section 87A rebate
+  else if (tax > taxable - 1200000){ tax = taxable - 1200000; }       // marginal relief above ₹12 lakh
+  const cess = tax * 0.04;
+  const total = tax + cess;
+  document.getElementById("taxResult").textContent = "Estimated tax: ₹" + Math.round(total).toLocaleString("en-IN");
+  document.getElementById("taxBreakup").innerHTML =
+    `Taxable income: ₹${Math.round(taxable).toLocaleString("en-IN")} · Tax before cess: ₹${Math.round(tax).toLocaleString("en-IN")} · 4% health and education cess: ₹${Math.round(cess).toLocaleString("en-IN")}` +
+    (rebate ? ` · Section 87A rebate applied (₹${Math.round(rebate).toLocaleString("en-IN")})` : "") +
+    `<br>Excludes surcharge, TDS already deducted, and other deductions or regimes. Confirm with a tax professional.`;
+}
+document.getElementById("grossIncome").addEventListener("input", calcTax);
+document.getElementById("salaried").addEventListener("change", calcTax);
+calcTax();
+
+// ---------- GST calculator ----------
+function calcGst(){
+  const amt = Number(document.getElementById("gstAmt").value) || 0;
+  const rate = Number(document.getElementById("gstRate").value) / 100;
+  const mode = document.getElementById("gstMode").value;
+  let base, gst;
+  if (mode === "excl"){ base = amt; gst = amt * rate; }
+  else { base = amt / (1 + rate); gst = amt - base; }
+  const total = base + gst;
+  const half = gst / 2;
+  const f = n => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits:2, minimumFractionDigits:2 });
+  document.getElementById("gstResult").innerHTML =
+    `Base: ${f(base)} · GST: ${f(gst)} · Total: ${f(total)}<div class="muted" style="font-size:13px;font-weight:400;margin-top:6px">Intra-state: CGST ${f(half)} + SGST ${f(half)}. Inter-state: IGST ${f(gst)}.</div>`;
+}
+["gstAmt","gstRate","gstMode"].forEach(id => document.getElementById(id).addEventListener("input", calcGst));
+calcGst();
+
+// ---------- Tabs ----------
+document.querySelectorAll("nav button").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(btn.dataset.tab).classList.add("active");
+}));
+
+
+// ---------- Tab navigation (menu, tool cards, footer links) ----------
+function showTab(name){
+  document.querySelectorAll("nav.mainnav button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("active", s.id === name));
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("nav.mainnav button").forEach(btn => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
+document.querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", e => { e.preventDefault(); showTab(el.dataset.go); }));
+
+// ---------- Header search: jumps to the calendar with the term filled in ----------
+function globalSearch(e){
+  e.preventDefault();
+  const q = (e.target.querySelector("input[type=search]").value || "").trim();
+  document.getElementById("search").value = q;
+  renderCal();
+  showTab("calendar");
+  return false;
+}
+
+// ---------- Updates (last checked 24 Nov 2026) ----------
+const UPDATES = [
+  { area:"mca", date:"24 Oct 2026", status:"Circular", title:"MCA General Circular 05/2026: extended dates for AOC-4 and MGT-7 (FY 2025-26)",
+    summary:"Companies may file AOC-4 (and its variants) by 31 December 2026 and MGT-7 / MGT-7A by 31 January 2027 without additional fees. The statutory dates, based on a 30 September 2026 AGM, were 30 October and 29 November 2026. A late fee of Rs 100 per day applies after the extended dates. Some reports of the circular are secondary, so check the circular text on mca.gov.in.",
+    source:"MCA General Circular 05/2026; professional summaries", url:"https://www.mca.gov.in" },
+  { area:"mca", date:"27 May 2026", status:"In force", title:"Companies (Corporate Social Responsibility Policy) Amendment Rules, 2026",
+    summary:"Notified as G.S.R. 415(E) and in force from 29 May 2026. Companies can fund CSR through Zero Coupon Zero Principal (ZCZP) instruments. Companies that subscribe to these instruments are exempt from impact assessment for projects funded through them.",
+    source:"Mondaq commentary on the notification", url:"https://www.mondaq.com/india/securities/1810942/mca-notifies-companies-corporate-social-responsibility-policy-amendment-rules-2026" },
+  { area:"mca", date:"1 Jun 2026", status:"In force", title:"Companies (Registered Valuers and Valuation) Amendment Rules, 2026",
+    summary:"Notified as G.S.R. 432(E) dated 1 June 2026. The eligibility criteria for Registered Valuer Organisations change, and a transitional period applies to existing RVOs.",
+    source:"Mondaq commentary on the notification", url:"https://www.mondaq.com/india/corporate-and-company-law/1810840/mca-notifies-companies-registered-valuers-and-valuation-amendment-rules-2026" },
+  { area:"mca", date:"12 Mar 2026", status:"In force", title:"Companies (Accounting Standards) Amendment Rules, 2026",
+    summary:"Notified on 10 March 2026 and published on 12 March 2026. Amends Accounting Standard 22 on accounting for income taxes, covering the OECD Pillar Two global minimum tax framework.",
+    source:"TeamLease RegTech; Mondaq", url:"https://www.mondaq.com/india/accounting-standards/1762636/mca-issues-companies-accounting-standards-amendment-rules-2026" },
+  { area:"mca", date:"8 Apr 2026", status:"Draft", title:"Draft Companies (Incorporation) Amendment Rules, 2026",
+    summary:"Proposes consolidating incorporation e-forms into two simpler forms, easing requirements for Section 8 companies, and allowing notices to be served by speed post or e-mail on a change of registered office. Comments closed on 9 May 2026. Not yet notified.",
+    source:"MCA public notice dated 8 April 2026", url:"" },
+  { area:"mca", date:"Dec 2025", status:"In force", title:"Revised definition of small company",
+    summary:"The MCA revised the definition of a small company effective 1 December 2025. Limits are paid-up capital of Rs 10 crore and turnover of Rs 100 crore. Small companies can use the abridged annual return (MGT-7A) and get other relaxations.",
+    source:"Corporate legal newsletters, January 2026", url:"" },
+  { area:"mca", date:"23 Mar 2026", status:"Bill", title:"Corporate Laws (Amendment) Bill, 2026",
+    summary:"Proposes changes to the Companies Act, 2013 and the LLP Act, 2008. Main items: electronic delivery of documents to members for prescribed classes of companies, CSR threshold and compliance relaxations, decriminalisation of some procedural defaults, and a penalty-based regime. Check the current status in Parliament.",
+    source:"Summary by India Briefing", url:"https://www.india-briefing.com/news/corporate-laws-amendment-bill-2026-india-43693.html" },
+  { area:"it", date:"4 Aug 2026", status:"Bill", title:"Taxation and Other Laws (Amendment) Bill, 2026",
+    summary:"Introduced in the Lok Sabha to replace the June 2026 Ordinance. It also makes further changes to the Income-tax Act, 2025 and the Finance Act, 2026, and amends the Payment and Settlement Systems Act, 2007. Passed by the Lok Sabha by voice vote. Check whether the Rajya Sabha has passed it and whether it has received assent.",
+    source:"EY India alert; Outlook Business", url:"https://www.ey.com/en_in/technical/alerts-hub/2026/08/alert-on-taxation-and-other-laws-amendment-bill-2026" },
+  { area:"it", date:"5 Jun 2026", status:"Ordinance", title:"Income-tax (Amendment) Ordinance, 2026",
+    summary:"Exempts specified foreign investors, including FIIs and the Bank for International Settlements, from income tax on interest income and capital gains from government securities. The exemption is deemed to apply from 1 April 2026. Two new entries (13D and 13E) are added to Schedule IV of the Income-tax Act, 2025.",
+    source:"Gazette of India; Ministry of Finance", url:"https://www.incometaxindia.gov.in/documents/d/guest/doc202665883801-pdf" },
+  { area:"it", date:"1 Apr 2026", status:"In force", title:"Income-tax Act, 2025 replaces the Income-tax Act, 1961",
+    summary:"The new Act applies to tax year 2026-27 and later years. The assessment year is replaced by a single 'tax year' concept. Tax rates and slabs are unchanged, and the law is restructured into fewer sections.",
+    source:"Wikipedia summary; Times of India and Economic Times reports", url:"https://en.wikipedia.org/wiki/Income-tax_Act,_2025" },
+  { area:"it", date:"1 Apr 2026", status:"In force", title:"Income-tax Rules, 2026 replace the Income-tax Rules, 1962",
+    summary:"The new Rules operationalise the Income-tax Act, 2025, cover about 333 rules, and introduce new return forms. Commentators report changes to allowance limits, PAN quoting thresholds and HRA cities. Verify exact figures in the notified Rules.",
+    source:"Reported by tax commentators; verify against the Gazette", url:"" },
+  { area:"it", date:"1 Apr 2026", status:"In force", title:"Finance Act 2026: direct tax amendments and FAST-DS 2026",
+    summary:"Amendments to sections 473 to 485 and 494 of the Income-tax Act, 2025 take effect from 1 April 2026 for tax year 2026-27. Amendments to sections 275A to 278A and 280 of the Income-tax Act, 1961 take effect from 1 March 2026. The Finance Act also introduces the Foreign Assets of Small Taxpayers Disclosure Scheme, 2026 (FAST-DS 2026).",
+    source:"Budget memorandum on Finance Bill 2026", url:"https://www.indiabudget.gov.in/doc/memo.pdf" },
+  { area:"it", date:"Budget 2025", status:"Unchanged", title:"New regime slabs and ₹12 lakh rebate continue",
+    summary:"Tax slabs under the new regime are unchanged for FY 2026-27. Section 87A makes tax nil for taxable income up to ₹12 lakh. Salaried persons also get a ₹75,000 standard deduction.",
+    source:"Consistent across tax commentaries", url:"" }
+];
+const STATUS_CLASS = { "Bill":"s-bill", "Ordinance":"s-ord", "In force":"s-live", "Unchanged":"s-ok", "Circular":"s-circ", "Draft":"s-ok" };
+function amendCard(u){
+  const link = u.url ? `<a href="${u.url}" target="_blank" rel="noopener">${u.source}</a>` : u.source;
+  return `<div class="amend">
+    <div class="amend-top"><span class="status ${STATUS_CLASS[u.status]||'s-ok'}">${u.status}</span><span class="muted">${u.date}</span></div>
+    <h4>${u.title}</h4>
+    <p>${u.summary}</p>
+    <div class="muted">Source: ${link}</div></div>`;
+}
+// Home: latest 3 (one per area first)
+const homePick = [UPDATES.find(u => u.area === "mca"), UPDATES.find(u => u.area === "it"), UPDATES[1]].filter(Boolean);
+document.getElementById("homeAmend").innerHTML = homePick.map(amendCard).join("");
+function renderUpdates(f){
+  const list = UPDATES.filter(u => f === "all" || u.area === f);
+  document.getElementById("updatesList").innerHTML = list.map(amendCard).join("");
+}
+document.querySelectorAll(".fbtn").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".fbtn").forEach(x => x.classList.toggle("active", x === b));
+  renderUpdates(b.dataset.f);
+}));
+renderUpdates("all");
+</script>
+</body>
+</html>
